@@ -1,26 +1,271 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
+/*:root {
+   --background: #ffffff;
   --foreground: #171717;
+
+
+  --background: 210 40% 98%;
+  --foreground: 222.2 84% 4.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+
+  --primary: 214 80% 38%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 199 89% 48%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 24 94% 53%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+
+  --radius: 0.5rem;
+} */
+
+@layer base {
+  :root {
+    --background: hsl(210, 40%, 98%);
+    --foreground: hsl(222.2 84% 4.9%);
+
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(222.2 84% 4.9%);
+
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(222.2 84% 4.9%);
+
+    --primary: hsl(214 80% 38%);
+    --primary-foreground: hsl(210 40% 98%);
+
+    --secondary: hsl(199 89% 48%);
+    --secondary-foreground: hsl(210 40% 98%);
+
+    --muted: hsl(210 40% 96.1%);
+    --muted-foreground: hsl(215.4 16.3% 46.9%);
+
+    --accent: hsl(24 94% 53%);
+    --accent-foreground: hsl(210 40% 98%);
+
+    --destructive: hsl(0 84.2% 60.2%);
+    --destructive-foreground: hsl(210 40% 98%);
+
+    --border: hsl(214.3 31.8% 91.4%);
+    --input: hsl(214.3 31.8% 91.4%);
+    --ring: hsl(222.2 84% 4.9%);
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: hsl(222.2 84% 4.9%);
+    --foreground: hsl(210 40% 98%);
+
+    --card: hsl(222.2 84% 4.9%);
+    --card-foreground: hsl(210 40% 98%);
+
+    --popover: hsl(222.2 84% 4.9%);
+    --popover-foreground: hsl(210 40% 98%);
+
+    --primary: hsl(214 80% 56%);
+    --primary-foreground: hsl(222.2 47.4% 11.2%);
+
+    --secondary: hsl(199 89% 48%);
+    --secondary-foreground: hsl(222.2 47.4% 11.2%);
+
+    --muted: hsl(217.2 32.6% 17.5%);
+    --muted-foreground: hsl(215 20.2% 65.1%);
+
+    --accent: hsl(24 94% 53%);
+    --accent-foreground: hsl(222.2 47.4% 11.2%);
+
+    --destructive: hsl(0 62.8% 30.6%);
+    --destructive-foreground: hsl(210 40% 98%);
+
+    --border: hsl(217.2 32.6% 17.5%);
+    --input: hsl(217.2 32.6% 17.5%);
+    --ring: hsl(212.7 26.8% 83.9%);
+  }
+  
 }
 
-@theme inline {
-  --color-background: var(--background);
+@theme{
+  /*--color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: var(--font-geist-mono);*/
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-job-blue: #1e40af;
+  --color-job-teal: #0ea5e9;
+  --color-job-light-blue: #e0f2fe;
+  --color-job-dark-blue: #1e3a8a;
+  --color-job-accent: #f97316;
+  --color-job-gray: #f1f5f9;
+  --color-job-text: #334155;
+  --color-job-ring: #64748b;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+  
+  h3 {
+    @apply text-xl md:text-2xl;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .bg-job-blue {
+    @apply bg-job-blue;
+  }
+  
+  .bg-job-teal {
+    @apply bg-job-teal;
+  }
+  
+  .bg-job-light-blue {
+    @apply bg-job-light-blue;
+  }
+  
+  .bg-job-dark-blue {
+    @apply bg-job-dark-blue;
+  }
+  
+  .bg-job-accent {
+    @apply bg-job-accent;
+  }
+  
+  .bg-job-gray {
+    @apply bg-job-gray;
+  }
+  
+  .text-job-blue {
+    @apply text-job-blue;
+  }
+  
+  .text-job-teal {
+    @apply text-job-teal;
+  }
+  
+  .text-job-light-blue {
+    @apply text-job-light-blue;
+  }
+  
+  .text-job-dark-blue {
+    @apply text-job-dark-blue;
+  }
+  
+  .text-job-accent {
+    @apply text-job-accent;
+  }
+  
+  .text-job-gray {
+    @apply text-job-gray;
+  }
+
+  
 }
+
+
+
+  @utility job-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-100 p-5 transition duration-200 hover:shadow-md hover:border-blue-100;
+  }
+  
+  @utility badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  @utility badge-blue {
+    @apply badge bg-blue-100 text-blue-800;
+  }
+  
+  @utility badge-green {
+    @apply badge bg-green-100 text-green-800;
+  }
+  
+  @utility badge-yellow {
+    @apply badge bg-yellow-100 text-yellow-800;
+  }
+  
+  @utility badge-purple {
+    @apply badge bg-purple-100 text-purple-800;
+  }
+  
+  @utility btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-job-blue text-white font-medium transition-colors 
+    hover:bg-job-dark-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-job-blue
+    px-4 py-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  @utility btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md bg-white text-job-blue border border-job-blue font-medium transition-colors
+    hover:bg-job-light-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-job-blue
+    px-4 py-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  @utility btn-accent {
+    @apply inline-flex items-center justify-center rounded-md bg-job-accent text-white font-medium transition-colors
+    hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-job-accent
+    px-4 py-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  @utility input-field {
+    @apply block w-full rounded-md border border-gray-200 py-2 px-3 text-sm placeholder:text-gray-400 
+    focus:outline-none focus:ring-1 focus:border-blue-600 focus:ring-blue-600;
+  }
+  
+  @utility select-field {
+    @apply block w-full rounded-md border border-gray-200 py-2 px-3 text-sm placeholder:text-gray-400
+    focus:outline-none focus:ring-1 focus:border-blue-600 focus:ring-blue-600;
+  }
+
+
