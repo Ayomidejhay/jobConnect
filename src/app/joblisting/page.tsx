@@ -173,7 +173,10 @@ const JobListing = () => {
         <div className="md:col-span-9">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-job-text">
-              {filteredJobs.length} Jobs Available
+              {/** filteredJobs*/}
+                {filters.search || filters.location || filters.locationType.length > 0 || filters.jobType.length > 0
+                ? filteredJobs.length
+                : jobPosts.length} Jobs Available 
             </h2>
             <div>
               <select className="select-field" defaultValue="recent">
@@ -265,7 +268,7 @@ const JobListing = () => {
                   >
                     Previous
                   </button>
-                  <span className="text-lg font-medium text-gray-700">
+                  <span className="text-md font-medium text-gray-700">
                     Page {currentPage} of {totalPages}
                   </span>
                   <button
