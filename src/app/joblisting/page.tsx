@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState,useEffect,useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import JobFilter, { FilterState } from "@/components/JobFilter";
 import JobCard from "@/components/JobCard";
 //import { mockJobs, Job } from "@/data/jobData";
@@ -9,46 +9,58 @@ import { getJobPosts } from "../appwrite";
 import { Job } from "@/types";
 
 const JobListing = () => {
-
-   const { currentUser, loading: authLoading } = useAuth();
+  const { currentUser, loading: authLoading } = useAuth();
   const [jobPosts, setJobPosts] = useState<Job[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-    const [filters, setFilters] = useState<FilterState>({
-    search: '',
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 6; // Maximum of 6 per page
+
+  const [filters, setFilters] = useState<FilterState>({
+    search: "",
     locationType: [],
     jobType: [],
-    location: '',
+    location: "",
   });
-  
+
   const filteredJobs = useMemo(() => {
     return jobPosts.filter((job) => {
       // Filter by search term
-      if (filters.search && 
+      if (
+        filters.search &&
         !job.title.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !job.company.toLowerCase().includes(filters.search.toLowerCase())) {
+        !job.company.toLowerCase().includes(filters.search.toLowerCase())
+      ) {
         return false;
       }
-      
+
       // Filter by location
-      if (filters.location && 
-        !job.location.toLowerCase().includes(filters.location.toLowerCase())) {
+      if (
+        filters.location &&
+        !job.location.toLowerCase().includes(filters.location.toLowerCase())
+      ) {
         return false;
       }
-      
+
       // Filter by location type
-      if (filters.locationType.length > 0 && 
-        !filters.locationType.includes(job.locationType)) {
+      if (
+        filters.locationType.length > 0 &&
+        !filters.locationType.includes(job.locationType)
+      ) {
         return false;
       }
-      
+
       // Filter by job type
-      if (filters.jobType.length > 0 && 
-        !filters.jobType.includes(job.jobType)) {
+      if (
+        filters.jobType.length > 0 &&
+        !filters.jobType.includes(job.jobType)
+      ) {
         return false;
       }
-      
+
       return true;
     });
   }, [filters, jobPosts]);
@@ -65,12 +77,21 @@ const JobListing = () => {
       // and if the user is authenticated (as this is a protected route)
       if (!authLoading && currentUser) {
         setDataLoading(true);
-        setError('');
+        setError("");
         try {
-          const apiResult = await getJobPosts();
-          const result: JobPostsResult = apiResult && typeof apiResult === "object" && "success" in apiResult && "data" in apiResult
-            ? apiResult as JobPostsResult
-            : { success: false, data: [], message: "Invalid response from server." };
+          const offset = (currentPage - 1) * itemsPerPage;
+          const apiResult = await getJobPosts(itemsPerPage, offset);
+          const result: JobPostsResult =
+            apiResult &&
+            typeof apiResult === "object" &&
+            "success" in apiResult &&
+            "data" in apiResult
+              ? (apiResult as JobPostsResult)
+              : {
+                  success: false,
+                  data: [],
+                  message: "Invalid response from server.",
+                };
           if (result.success) {
             setJobPosts(result.data);
           } else {
@@ -91,7 +112,20 @@ const JobListing = () => {
     };
 
     fetchJobs();
-  }, [authLoading, currentUser]);
+  }, [authLoading, currentUser, currentPage]);
+
+  // Handlers for pagination
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   // Display error message if any
   if (error) {
@@ -107,7 +141,9 @@ const JobListing = () => {
     // This case should ideally be handled by middleware redirection
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100 font-inter">
-        <p className="text-lg text-red-700">Access Denied. Please log in to view job listings.</p>
+        <p className="text-lg text-red-700">
+          Access Denied. Please log in to view job listings.
+        </p>
       </div>
     );
   }
@@ -119,10 +155,11 @@ const JobListing = () => {
           Find Your Dream Job
         </h1>
         <p className="text-lg text-job-text max-w-3xl mx-auto">
-          Browse through hundreds of opportunities and discover your perfect career match
+          Browse through hundreds of opportunities and discover your perfect
+          career match
         </p>
       </div>
-      
+
       <div className="grid md:grid-cols-12 gap-8">
         <div className="md:col-span-3">
           <JobFilter onFilterChange={setFilters} />
@@ -133,10 +170,7 @@ const JobListing = () => {
               {filteredJobs.length} Jobs Available
             </h2>
             <div>
-              <select
-                className="select-field"
-                defaultValue="recent"
-              >
+              <select className="select-field" defaultValue="recent">
                 <option value="recent">Most Recent</option>
                 <option value="relevant">Most Relevant</option>
                 <option value="salary-high">Highest Salary</option>
@@ -144,28 +178,39 @@ const JobListing = () => {
               </select>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             {filteredJobs.length > 0 ? (
-              filteredJobs.map((job) => (
-                <JobCard key={job.$id} job={job} />
-              ))
+              filteredJobs.map((job) => <JobCard key={job.$id} job={job} />)
             ) : (
               <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-100">
-                <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
-                <h3 className="mt-2 text-lg font-medium text-gray-900">No jobs found</h3>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">
+                  No jobs found
+                </h3>
                 <p className="mt-1 text-gray-500">
                   Try adjusting your search or filter criteria.
                 </p>
               </div>
             )}
           </div>
-          
+
           {filteredJobs.length > 0 && (
             <div className="mt-6 flex justify-center">
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              {/*<nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                 <a
                   href="#"
                   className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
@@ -203,13 +248,35 @@ const JobListing = () => {
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
                 </a>
-              </nav>
+              </nav>*/}
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-4 mt-8">
+                  <button
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-lg font-medium text-gray-700">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default JobListing
+export default JobListing;

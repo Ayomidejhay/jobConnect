@@ -108,19 +108,21 @@ export async function createJobPost(userId, jobDetails) {
  * Function to fetch all job posts from the database.
  * @returns {Promise<object>} Result object containing an array of job documents.
  */
-export async function getJobPosts() {
+export async function getJobPosts(limit = 6, offset = 0) {
     try {
         // Use Query.orderDesc('$createdAt') to get the latest jobs first
         const response = await databases.listDocuments(
             DATABASE_ID,
             COLLECTION_ID_JOBS,
             [
+                Query.limit(limit), // Apply limit
+                Query.offset(offset), // Apply offset
                 Query.orderDesc('$createdAt') // Order by creation date, newest first
                 // You can add more queries here, e.g., Query.limit(10), Query.offset(0)
             ]
         );
-        console.log("Job posts fetched successfully:", response.documents);
-        return { success: true, data: response.documents };
+        console.log(`Job posts fetched successfully (limit: ${limit}, offset: ${offset})`);
+        return { success: true, data: response.documents,  total: response.total };
     } catch (error) {
         console.error("Error fetching job posts:", error);
         if (error.response && error.response.message) {
