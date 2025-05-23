@@ -2,11 +2,19 @@
 
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { createJobPost } from "../appwrite";
+import { useAuth } from "../context/AuthContext";
+import { title } from "process";
 
 const page = () => {
   const router = useRouter();
+  const { currentUser, loading } = useAuth();
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
+  const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const initialState = {
     title: "",
     company: "",
     location: "",
@@ -17,7 +25,32 @@ const page = () => {
     requirements: "",
     responsibilities: "",
     applicationDeadline: "",
-  });
+  };
+
+  const [formData, setFormData] = useState(initialState);
+
+ /* const [formData, setFormData] = useState({
+    title: "",
+    company: "",
+    location: "",
+    locationType: "On-site",
+    salary: "",
+    jobType: "Full-time",
+    description: "",
+    requirements: "",
+    responsibilities: "",
+    applicationDeadline: "",
+  });*/
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 font-inter">
+        <p className="text-lg text-red-700">
+          Access Denied. Please log in to post a job.
+        </p>
+      </div>
+    );
+  }
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -31,12 +64,52 @@ const page = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form submitted with data:", formData);
 
     // In a real application, you would send this data to your backend
     // For now, we'll just simulate a successful submission
+
+    // Process skills input: split by newline, trim whitespace, filter out empty strings
+    const requirementsArray = formData.requirements.split('\n').map(requirement => requirement.trim()).filter(requirement => requirement !== '');
+    const responsibilitiesArray = formData.responsibilities.split('\n').map(responsibility => responsibility.trim()).filter(responsibility => responsibility !== '');
+    try {
+      const jobDetails = {
+        title: formData.title,
+        company: formData.company,
+        location: formData.location,
+        locationType: formData.locationType,
+        jobType: formData.jobType,
+        salary: formData.salary,
+        applicationDeadline: formData.applicationDeadline,
+        description: formData.description,
+        requirements: requirementsArray,
+        responsibilities: responsibilitiesArray,
+      };
+
+      // Call the Appwrite function to create the job post
+      const result = await createJobPost(currentUser.$id, jobDetails);
+
+      if (result.success) {
+        setMessage("Job posted successfully!");
+        setIsError(false);
+        // Clear the form fields after successful submission
+        setFormData(initialState);
+      } else {
+        setMessage(result.message || "Failed to post job. Please try again.");
+        setIsError(true);
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      setMessage(`An unexpected error occurred: ${errorMessage}`);
+      setIsError(true);
+      console.error("Job post submission error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+
     setFormSubmitted(true);
 
     // Reset form after submission
@@ -334,10 +407,19 @@ const page = () => {
               Cancel
             </button>
             <button type="submit" className="btn-primary">
-              Post Job
+              {isSubmitting ? "Posting Job..." : "Post Job"}
             </button>
           </div>
         </form>
+        {message && (
+          <p
+            className={`mt-5 text-center text-base font-medium ${
+              isError ? "text-red-600" : "text-green-600"
+            }`}
+          >
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );

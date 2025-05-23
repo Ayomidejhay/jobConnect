@@ -1,11 +1,19 @@
 "use client"
 
-import { useState, useMemo } from "react";
+import { useState,useEffect,useMemo } from "react";
 import JobFilter, { FilterState } from "@/components/JobFilter";
 import JobCard from "@/components/JobCard";
-import { mockJobs, Job } from "@/data/jobData";
+//import { mockJobs, Job } from "@/data/jobData";
+import { useAuth } from "../context/AuthContext";
+import { getJobPosts } from "../appwrite";
+import { Job } from "@/types";
 
 const JobListing = () => {
+
+   const { currentUser, loading: authLoading } = useAuth();
+  const [jobPosts, setJobPosts] = useState<Job[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState('');
 
     const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -15,7 +23,7 @@ const JobListing = () => {
   });
   
   const filteredJobs = useMemo(() => {
-    return mockJobs.filter((job) => {
+    return jobPosts.filter((job) => {
       // Filter by search term
       if (filters.search && 
         !job.title.toLowerCase().includes(filters.search.toLowerCase()) &&
@@ -43,7 +51,66 @@ const JobListing = () => {
       
       return true;
     });
-  }, [filters]);
+  }, [filters, jobPosts]);
+
+  useEffect(() => {
+    type JobPostsResult = {
+      success: boolean;
+      data: Job[];
+      message?: string;
+    };
+
+    const fetchJobs = async () => {
+      // Only attempt to fetch jobs if authentication status is known
+      // and if the user is authenticated (as this is a protected route)
+      if (!authLoading && currentUser) {
+        setDataLoading(true);
+        setError('');
+        try {
+          const apiResult = await getJobPosts();
+          const result: JobPostsResult = apiResult && typeof apiResult === "object" && "success" in apiResult && "data" in apiResult
+            ? apiResult as JobPostsResult
+            : { success: false, data: [], message: "Invalid response from server." };
+          if (result.success) {
+            setJobPosts(result.data);
+          } else {
+            setError(result.message || "Failed to load job posts.");
+          }
+        } catch (err: any) {
+          setError(`An unexpected error occurred: ${err.message}`);
+          console.error("Error fetching jobs in component:", err);
+        } finally {
+          setDataLoading(false);
+        }
+      } else if (!authLoading && !currentUser) {
+        // If not authenticated, the middleware should have redirected,
+        // but this client-side check provides a fallback message.
+        setError("You must be logged in to view job listings.");
+        setDataLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, [authLoading, currentUser]);
+
+  // Display error message if any
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 font-inter">
+        <p className="text-lg text-red-700">{error}</p>
+      </div>
+    );
+  }
+
+  // This page is protected by middleware, but a client-side check is good for robustness
+  if (!currentUser) {
+    // This case should ideally be handled by middleware redirection
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 font-inter">
+        <p className="text-lg text-red-700">Access Denied. Please log in to view job listings.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -81,7 +148,7 @@ const JobListing = () => {
           <div className="space-y-4">
             {filteredJobs.length > 0 ? (
               filteredJobs.map((job) => (
-                <JobCard key={job.id} job={job} />
+                <JobCard key={job.$id} job={job} />
               ))
             ) : (
               <div className="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-100">

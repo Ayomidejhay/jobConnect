@@ -1,7 +1,53 @@
+"use client";
+
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { loginUser } from "@/app/appwrite";
+import { useAuth } from "@/app/context/AuthContext";
+
 
 const page = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const { login } = useAuth()
+  const router = useRouter()
+
+interface LoginResult {
+    success: boolean;
+    message: string;
+}
+
+interface HandleSubmitEvent extends React.FormEvent<HTMLFormElement> {}
+
+const handleSubmit = async (e: HandleSubmitEvent): Promise<void> => {
+    e.preventDefault();
+    setMessage("Logging in...");
+    setIsError(false);
+    try {
+        if (typeof login === "function") {
+            const result: LoginResult = await login(email, password);
+            if (result.success) {
+                setMessage(result.message);
+                // Optionally redirect user after successful login
+                router.push('/'); // You would need to import useRouter from 'next/navigation'
+            } else {
+                setMessage(result.message);
+                setIsError(true);
+            }
+        } else {
+            setMessage("Login function is not available.");
+            setIsError(true);
+        }
+    } catch (error: any) {
+        setMessage(`An unexpected error occurred: ${error.message}`);
+        setIsError(true);
+        console.error("Login form submission error:", error);
+    }
+};
+
   return (
     <section className="lg:px-8 py-8">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -17,7 +63,7 @@ const page = () => {
         <div className="relative max-w-md mx-auto mt-8 ">
           <div className="overflow-hidden bg-white rounded-md shadow-md">
             <div className="px-4 py-6 sm:px-8 sm:py-7">
-              <form action="#" method="POST">
+              <form onSubmit={handleSubmit} method="POST">
                 <div className="space-y-5">
                   <div>
                     <label
@@ -49,6 +95,8 @@ const page = () => {
                         type="email"
                         name="email"
                         id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                         placeholder="Enter email to get started"
                         className="block w-full py-4 pl-10 pr-4 text-black placeholder-gray-500 transition-all duration-200 bg-white border border-gray-200 rounded-md focus:outline-none focus:border-blue-600 caret-blue-600"
@@ -97,6 +145,8 @@ const page = () => {
                         type="password"
                         name="password"
                         id="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         placeholder="Enter your password"
                         className="block w-full py-4 pl-10 pr-4 text-black placeholder-gray-500 transition-all duration-200 bg-white border border-gray-200 rounded-md focus:outline-none focus:border-blue-600 caret-blue-600"
                       />
@@ -111,6 +161,11 @@ const page = () => {
                       Log in
                     </button>
                   </div>
+                  {message && (
+                    <p className={`mt-5 text-center text-base font-medium ${isError ? 'text-red-600' : 'text-green-600'}`}>
+                        {message}
+                    </p>
+                )}
 
                   <div className="text-center">
                     <p className="text-base text-gray-600">

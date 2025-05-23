@@ -2,14 +2,18 @@
 
 import Link from 'next/link'
 import React from 'react'
-import { Job } from '@/data/jobData'
+//import { Job } from '@/data/jobData'
+import { getJobPosts } from '@/app/appwrite'
+import { Job } from '@/types'
+
+
 
 interface JobCardProps {
   job: Job;
 }
 
 const JobCard = ({job} : JobCardProps) => {
-    const daysAgo = calculateDaysAgo(job.postedDate);
+    const daysAgo = calculateDaysAgo(job.$createdAt);
   return (
     <div className="job-card animate-slide-up">
       <div className="flex justify-between">
@@ -22,7 +26,7 @@ const JobCard = ({job} : JobCardProps) => {
             />
           </div>
           <div>
-            <Link href={`/joblisting/${job.id}`} className="text-lg font-semibold text-job-blue hover:text-job-dark-blue">{job.title}</Link>
+            <Link href={`/joblisting/${job.$id}`} className="text-lg capitalize font-semibold text-job-blue hover:text-job-dark-blue">{job.title}</Link>
             <p className="text-job-text">{job.company}</p>
             <div className="mt-1 flex flex-wrap gap-2">
               <span className="text-sm text-job-light-text flex items-center">
@@ -37,10 +41,10 @@ const JobCard = ({job} : JobCardProps) => {
         </div>
         <div className="text-right">
           <div className="space-y-1">
-            <div className={`badge ${getLocationTypeBadgeColor(job.locationType)}`}>
+            <div className={`badge capitalize ${getLocationTypeBadgeColor(job.locationType)}`}>
               {job.locationType}
             </div>
-            <div className="badge badge-blue">
+            <div className="badge capitalize badge-blue">
               {job.jobType}
             </div>
           </div>
@@ -53,6 +57,43 @@ const JobCard = ({job} : JobCardProps) => {
     </div>
   )
 }
+
+/**
+ * Utility function to format a timestamp into "time ago" string.
+ * @param {string} timestamp - The ISO 8601 timestamp string (e.g., job.$createdAt).
+ * @returns {string} Formatted time ago string (e.g., "5 minutes ago", "2 days ago").
+ */
+interface FormatTimeAgo {
+  (timestamp: string): string;
+}
+
+const formatTimeAgo: FormatTimeAgo = (timestamp) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  let interval = seconds / 31536000; // seconds in a year
+  if (interval > 1) {
+    return Math.floor(interval) + " year" + (Math.floor(interval) === 1 ? "" : "s") + " ago";
+  }
+  interval = seconds / 2592000; // seconds in a month
+  if (interval > 1) {
+    return Math.floor(interval) + " month" + (Math.floor(interval) === 1 ? "" : "s") + " ago";
+  }
+  interval = seconds / 86400; // seconds in a day
+  if (interval > 1) {
+    return Math.floor(interval) + " day" + (Math.floor(interval) === 1 ? "" : "s") + " ago";
+  }
+  interval = seconds / 3600; // seconds in an hour
+  if (interval > 1) {
+    return Math.floor(interval) + " hour" + (Math.floor(interval) === 1 ? "" : "s") + " ago";
+  }
+  interval = seconds / 60; // seconds in a minute
+  if (interval > 1) {
+    return Math.floor(interval) + " minute" + (Math.floor(interval) === 1 ? "" : "s") + " ago";
+  }
+  return Math.floor(seconds) + " second" + (Math.floor(seconds) === 1 ? "" : "s") + " ago";
+};
 
 function calculateDaysAgo(dateString: string): string {
   const postedDate = new Date(dateString);

@@ -1,15 +1,77 @@
 "use client"
 
+import { getJobPostById } from "@/app/appwrite";
 import { getJobById, mockJobs } from "@/data/jobData";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { Job } from "@/types";
+
+
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/app/context/AuthContext";
 
 const page = () => {
-
-      const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const job = id ? getJobById(id) : null;
+  const [job, setJob] = useState<Job | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const { currentUser, loading: authLoading } = useAuth();
   
+
+  useEffect(() => {
+    const fetchJob = async () => {
+      // Wait for authentication status to be determined
+      if (authLoading) {
+        return;
+      }
+
+      // If not authenticated, redirect to login page
+      if (!currentUser) {
+        router.push('/auth/signin');
+        return; // Stop execution
+      }
+
+      // If ID is not available (e.g., direct navigation without ID), set error
+      if (!id) {
+        setError("Job ID is missing in the URL.");
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+      try {
+        type JobPostByIdResult = {
+          success: boolean;
+          data?: Job;
+          message?: string;
+        };
+        const result = await getJobPostById(id.toString()) as JobPostByIdResult; // Ensure ID is a string and type
+        if (result.success) {
+          setJob(result.data!);
+        } else {
+          setError(result.message || "Failed to load job details.");
+        }
+      } catch (err: any) {
+        setError(`An unexpected error occurred: ${err.message}`);
+        console.error("Error fetching job details:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJob(); // Call the fetch function
+  }, [id, authLoading, currentUser, router]);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <h2 className="text-2xl font-bold mb-4">Loading...</h2>
+      </div>
+    );
+  }
+
   if (!job) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
@@ -20,8 +82,7 @@ const page = () => {
         </Link>
       </div>
     );
-    }
-  
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -43,13 +104,13 @@ const page = () => {
             <div className="flex-shrink-0 h-20 w-20 bg-gray-100 rounded-md overflow-hidden">
               <img 
                 src={job.logo || "/placeholder.svg"} 
-                alt={`${job.company} logo`} 
+                alt={`${job?.company} logo`} 
                 className="h-full w-full object-contain p-2"
               />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-job-blue">{job.title}</h1>
-              <p className="text-lg text-job-text mt-1">{job.company}</p>
+              <h1 className="text-2xl lg:text-3xl font-bold text-job-blue">{job?.title}</h1>
+              <p className="text-lg text-job-text mt-1">{job?.company}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <span className="text-sm text-job-light-text flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,21 +123,21 @@ const page = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Posted {calculateDaysAgo(job.postedDate)}
+                  Posted {calculateDaysAgo(job?.$createdAt)}
                 </span>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <div className={`badge ${getLocationTypeBadgeColor(job.locationType)}`}>
-                  {job.locationType}
+                <div className={`badge ${getLocationTypeBadgeColor(job?.locationType)}`}>
+                  {job?.locationType}
                 </div>
                 <div className="badge badge-blue">
-                  {job.jobType}
+                  {job?.jobType}
                 </div>
               </div>
             </div>
           </div>
           <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col space-y-3">
-            <div className="text-xl font-semibold text-job-text">{job.salary}</div>
+            <div className="text-xl font-semibold text-job-text">{job?.salary}</div>
             <button className="btn-accent">
               Apply Now
             </button>
@@ -94,19 +155,26 @@ const page = () => {
           
           <h2 className="text-xl font-semibold text-job-blue mt-8 mb-4">Requirements</h2>
           <ul className="list-disc pl-5 space-y-2 text-job-text">
-            {job.requirements.map((requirement, index) => (
+           {/* job.requirements.map((requirement, index) => (
               <li key={index}>{requirement}</li>
-            ))}
+            ))}*/}
+            {job?.requirements && job?.requirements.length > 0 && (
+              job?.requirements.map((requirement, index) => (
+                <li key={index}>{requirement}</li>
+              ))
+            )}
           </ul>
           
           <h2 className="text-xl font-semibold text-job-blue mt-8 mb-4">Responsibilities</h2>
           <ul className="list-disc pl-5 space-y-2 text-job-text">
-            {job.responsibilities.map((responsibility, index) => (
-              <li key={index}>{responsibility}</li>
-            ))}
+            {job?.responsibilities && job?.responsibilities.length > 0 && (
+              job?.responsibilities.map((responsibility, index) => (
+                <li key={index}>{responsibility}</li>
+              ))
+            )}
           </ul>
           
-          {job.applicationDeadline && (
+          {job?.applicationDeadline && (
             <div className="mt-8 p-4 bg-job-light-blue rounded-lg">
               <div className="flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-job-blue mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

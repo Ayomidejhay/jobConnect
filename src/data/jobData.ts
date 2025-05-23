@@ -29,7 +29,7 @@ export const mockJobs: Job[] = [
       "5+ years of experience with React",
       "Strong knowledge of HTML, CSS, and JavaScript",
       "Experience with responsive design",
-      "Familiarity with modern frontend build tools",
+      "Experience with responsive designs",
       "Bachelor's degree in Computer Science or related field"
     ],
     responsibilities: [
@@ -47,7 +47,7 @@ export const mockJobs: Job[] = [
     title: "Data Scientist",
     company: "Analytics Pro",
     logo: "/placeholder.svg",
-    location: "New York, NY",
+    location: "Analytics Pro",
     locationType: "Hybrid",
     salary: "$110,000 - $140,000",
     jobType: "Full-time",
