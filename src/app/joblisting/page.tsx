@@ -69,6 +69,7 @@ const JobListing = () => {
     type JobPostsResult = {
       success: boolean;
       data: Job[];
+      total: number;
       message?: string;
     };
 
@@ -80,6 +81,7 @@ const JobListing = () => {
         setError("");
         try {
           const offset = (currentPage - 1) * itemsPerPage;
+          console.log(`JobListingPage: Fetching page ${currentPage}. Limit: ${itemsPerPage}, Offset: ${offset}`);
           const apiResult = await getJobPosts(itemsPerPage, offset);
           const result: JobPostsResult =
             apiResult &&
@@ -90,10 +92,14 @@ const JobListing = () => {
               : {
                   success: false,
                   data: [],
+                  total: 0,
                   message: "Invalid response from server.",
                 };
           if (result.success) {
             setJobPosts(result.data);
+            // Calculate total pages based on total documents and items per page
+            const calculatedTotalPages = Math.ceil(result.total / itemsPerPage);
+            setTotalPages(calculatedTotalPages);
           } else {
             setError(result.message || "Failed to load job posts.");
           }

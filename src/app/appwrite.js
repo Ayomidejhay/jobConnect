@@ -111,6 +111,7 @@ export async function createJobPost(userId, jobDetails) {
 export async function getJobPosts(limit = 6, offset = 0) {
     try {
         // Use Query.orderDesc('$createdAt') to get the latest jobs first
+        console.log(`Appwrite: Fetching jobs with limit=${limit}, offset=${offset}`);
         const response = await databases.listDocuments(
             DATABASE_ID,
             COLLECTION_ID_JOBS,
@@ -121,7 +122,7 @@ export async function getJobPosts(limit = 6, offset = 0) {
                 // You can add more queries here, e.g., Query.limit(10), Query.offset(0)
             ]
         );
-        console.log(`Job posts fetched successfully (limit: ${limit}, offset: ${offset})`);
+        console.log(`Appwrite: Fetched ${response.documents.length} documents. Total available: ${response.total}`)
         return { success: true, data: response.documents,  total: response.total };
     } catch (error) {
         console.error("Error fetching job posts:", error);
