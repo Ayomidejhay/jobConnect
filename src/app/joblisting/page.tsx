@@ -80,9 +80,8 @@ const JobListing = () => {
         setDataLoading(true);
         setError("");
         try {
-          const offset = (currentPage - 1) * itemsPerPage;
-          console.log(`JobListingPage: Fetching page ${currentPage}. Limit: ${itemsPerPage}, Offset: ${offset}`);
-          const apiResult = await getJobPosts(itemsPerPage, offset);
+          
+          const apiResult = await getJobPosts();
           const result: JobPostsResult =
             apiResult &&
             typeof apiResult === "object" &&
@@ -97,9 +96,10 @@ const JobListing = () => {
                 };
           if (result.success) {
             setJobPosts(result.data);
+
             // Calculate total pages based on total documents and items per page
-            const calculatedTotalPages = Math.ceil(result.total / itemsPerPage);
-            setTotalPages(calculatedTotalPages);
+           // const calculatedTotalPages = Math.ceil(result.total / itemsPerPage);
+            //setTotalPages(calculatedTotalPages);
           } else {
             setError(result.message || "Failed to load job posts.");
           }
@@ -120,18 +120,7 @@ const JobListing = () => {
     fetchJobs();
   }, [authLoading, currentUser, currentPage]);
 
-  // Handlers for pagination
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
 
   // Display error message if any
   if (error) {
@@ -174,9 +163,7 @@ const JobListing = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-job-text">
               {/** filteredJobs*/}
-                {filters.search || filters.location || filters.locationType.length > 0 || filters.jobType.length > 0
-                ? filteredJobs.length
-                : jobPosts.length} Jobs Available 
+              {filteredJobs.length} Jobs Available
             </h2>
             <div>
               <select className="select-field" defaultValue="recent">
@@ -219,7 +206,7 @@ const JobListing = () => {
 
           {filteredJobs.length > 0 && (
             <div className="mt-6 flex justify-center">
-              {/*<nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                 <a
                   href="#"
                   className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
@@ -257,29 +244,9 @@ const JobListing = () => {
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
                 </a>
-              </nav>*/}
+              </nav>
               {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-4 mt-8">
-                  <button
-                    onClick={handlePreviousPage}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
-                  >
-                    Previous
-                  </button>
-                  <span className="text-md font-medium text-gray-700">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={handleNextPage}
-                    disabled={currentPage === totalPages}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              
             </div>
           )}
         </div>
